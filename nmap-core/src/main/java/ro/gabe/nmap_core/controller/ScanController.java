@@ -14,16 +14,19 @@ import org.springframework.web.bind.annotation.*;
 import ro.gabe.nmap_core.annotations.ValidIP;
 import ro.gabe.nmap_core.dto.ClientDTO;
 import ro.gabe.nmap_core.dto.ScanRequestDTO;
+import ro.gabe.nmap_core.service.KafkaProducerService;
 
 @Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/scans")
 public class ScanController {
+  private final KafkaProducerService kafkaProducerService;
+
   @PostMapping("/init")
   public ResponseEntity<Map<String, Object>> submitTargetsForScan(@Valid @RequestBody ScanRequestDTO scanRequestDTO) {
     Map<String, Object> response = new HashMap<>();
-    //TODO: Implement kafka dispatching
+    kafkaProducerService.publishTargetsForScan(scanRequestDTO);
     response.put("status", "success");
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }

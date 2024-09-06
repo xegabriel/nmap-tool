@@ -1,6 +1,7 @@
 package ro.gabe.nmap_core.dto;
 
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ro.gabe.nmap_core.annotations.ValidIPs;
@@ -9,5 +10,6 @@ import ro.gabe.nmap_core.annotations.ValidIPs;
 @NoArgsConstructor
 public class ScanRequestDTO {
   @ValidIPs
+  @NotEmpty
   private Set<String> targets;
 }

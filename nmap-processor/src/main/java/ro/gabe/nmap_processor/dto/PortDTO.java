@@ -1,10 +1,12 @@
-package ro.gabe.nmap_core.dto;
+package ro.gabe.nmap_processor.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PortDTO {
@@ -13,4 +15,3 @@ public class PortDTO {
   private String state;
   private String service;
 }
-

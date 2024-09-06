@@ -1,7 +1,6 @@
 package ro.gabe.nmap_core.controller;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
@@ -12,35 +11,46 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ro.gabe.nmap_core.annotations.ValidIP;
-import ro.gabe.nmap_core.dto.ClientDTO;
-import ro.gabe.nmap_core.dto.ScanRequestDTO;
+import ro.gabe.nmap_core.dto.ScanDTO;
+import ro.gabe.nmap_core.dto.ScansDTO;
 import ro.gabe.nmap_core.service.KafkaProducerService;
+import ro.gabe.nmap_core.service.ScanService;
 
 @Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/scans")
 public class ScanController {
+
   private final KafkaProducerService kafkaProducerService;
+  private final ScanService scanService;
 
   @PostMapping("/init")
-  public ResponseEntity<Map<String, Object>> submitTargetsForScan(@Valid @RequestBody ScanRequestDTO scanRequestDTO) {
+  public ResponseEntity<Map<String, Object>> submitTargetsForScan(@Valid @RequestBody ScansDTO scansDTO) {
     Map<String, Object> response = new HashMap<>();
-    kafkaProducerService.publishTargetsForScan(scanRequestDTO);
+    kafkaProducerService.publishTargetsForScan(scansDTO);
     response.put("status", "success");
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
   @GetMapping("/{ip}")
-  public Set<ClientDTO> getScanResults(@PathVariable @NotEmpty @ValidIP String ip) {
-    //TODO: Implement mongo retrieval
+  public ResponseEntity<Set<ScanDTO>> getScanResults(@PathVariable @NotEmpty @ValidIP String ip) {
     //TODO: Implement pagination
-    return new HashSet<>();
+    Set<ScanDTO> scanResults = scanService.getScanResults(ip);
+    if (scanResults.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    } else {
+      return new ResponseEntity<>(scanResults, HttpStatus.OK);
+    }
   }
 
   @GetMapping("/changes/{ip}")
-  public Set<ClientDTO> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
-    //TODO: Implement mongo retrieval
-    return new HashSet<>();
+  public ResponseEntity<Set<ScanDTO>> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
+    Set<ScanDTO> scanResults = scanService.getScanChangesResults(ip);
+    if (scanResults.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    } else {
+      return new ResponseEntity<>(scanResults, HttpStatus.OK);
+    }
   }
 }

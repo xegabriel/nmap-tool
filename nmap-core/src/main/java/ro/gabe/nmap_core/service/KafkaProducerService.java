@@ -7,7 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
-import ro.gabe.nmap_core.dto.ScanRequestDTO;
+import ro.gabe.nmap_core.dto.ScansDTO;
 
 @Service
 public class KafkaProducerService {
@@ -19,9 +19,9 @@ public class KafkaProducerService {
     this.kafkaTemplate = kafkaTemplate;
   }
 
-  public Set<String> publishTargetsForScan(ScanRequestDTO scanRequestDTO) {
+  public Set<String> publishTargetsForScan(ScansDTO scansDTO) {
     Set<String> publishedClients = new HashSet<>();
-    for (String target : scanRequestDTO.getTargets()) {
+    for (String target : scansDTO.getTargets()) {
       publishedClients.add(publishTargetForScan(target));
     }
     return publishedClients;

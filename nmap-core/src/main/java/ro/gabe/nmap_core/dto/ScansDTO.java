@@ -8,7 +8,8 @@ import ro.gabe.nmap_core.annotations.ValidIPs;
 
 @Data
 @NoArgsConstructor
-public class ScanRequestDTO {
+public class ScansDTO {
+
   @ValidIPs
   @NotEmpty
   private Set<String> targets;

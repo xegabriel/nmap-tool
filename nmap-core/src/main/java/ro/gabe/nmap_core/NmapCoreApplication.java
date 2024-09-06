@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class NmapCoreApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(NmapCoreApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(NmapCoreApplication.class, args);
+  }
 
 }

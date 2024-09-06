@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class ValidationErrorsDTO {
+
   private final int status;
   private final String message;
   private Set<String> validationErrors = new HashSet<>();

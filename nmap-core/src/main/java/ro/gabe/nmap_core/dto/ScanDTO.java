@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class ClientDTO {
+public class ScanDTO {
+
   private String id;
   private String ip;
   private Set<PortDTO> ports;

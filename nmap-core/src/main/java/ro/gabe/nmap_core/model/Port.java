@@ -1,12 +1,11 @@
-package ro.gabe.nmap_core.dto;
+package ro.gabe.nmap_core.model;
 
 import lombok.Data;
 
 @Data
-public class PortDTO {
+public class Port {
 
   private Long port;
   private String state;
   private String service;
 }
-

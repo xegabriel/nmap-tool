@@ -9,5 +9,7 @@ FROM openjdk:11-jdk-slim
 RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /workspace/target/nmap-processor-0.0.1-SNAPSHOT.jar /data/nmap-processor-0.0.1-SNAPSHOT.jar
+COPY waitForDeps.sh /app/waitForDeps.sh
+RUN chmod +x /app/waitForDeps.sh
 EXPOSE 8081
-ENTRYPOINT ["java","-jar","/data/nmap-processor-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["/bin/sh", "-c", "/app/waitForDeps.sh && java -jar /data/nmap-processor-0.0.1-SNAPSHOT.jar"]

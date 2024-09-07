@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PublishedTargetsCache {
+
   private static final String CACHE_PUBLISHED_TARGETS_PREFIX = "publishedTargetsCache::";
   private final RedisTemplate<String, Object> redisTemplate;
 

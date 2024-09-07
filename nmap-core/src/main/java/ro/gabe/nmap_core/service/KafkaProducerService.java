@@ -32,7 +32,7 @@ public class KafkaProducerService {
   }
 
   public String publishTargetForScan(String target) {
-    if(publishedTargetsCache.isCached(target)) {
+    if (publishedTargetsCache.isCached(target)) {
       log.info("Target {} skipped as it was recently processed", target);
       return null;
     }

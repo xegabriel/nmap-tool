@@ -16,7 +16,6 @@ import ro.gabe.nmap_processor.dto.ScanDTO;
 public class KafkaConsumerService {
 
   private final ScanService scanService;
-  // Reuse a single executor service for all tasks
   private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
   @KafkaListener(topics = "scan-results", groupId = "scan-consumers")

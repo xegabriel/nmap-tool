@@ -28,12 +28,11 @@ import ro.gabe.nmap_processor.dto.PortDTO;
 @Service
 public class NmapService {
 
+  public static final String PORT = "port";
   private static final String PORT_ID = "portid";
   private static final String STATE = "state";
   private static final String SERVICE = "service";
   private static final String NAME = "name";
-  public static final String PORT = "port";
-
   // https://nmap.org/book/port-scanning.html
   private static final int TOTAL_PORTS = 65535;
   private static final int THREAD_COUNT = 50;
@@ -58,10 +57,9 @@ public class NmapService {
         futures.add(executor.submit(task));
       }
 
-      // Collect results from each future
       Set<PortDTO> allResults = new HashSet<>();
       for (Future<Set<PortDTO>> future : futures) {
-        allResults.addAll(future.get());  // Merge the results
+        allResults.addAll(future.get());
       }
       return allResults;
 
@@ -94,7 +92,6 @@ public class NmapService {
   }
 
   private String buildNmapCommand(String ipAddress, int startPort, int endPort) {
-    // Adjust nmap command to scan only the port range [startPort, endPort]
     return "nmap -p" + startPort + "-" + endPort + " -oX - " + ipAddress;
   }
 
@@ -131,11 +128,8 @@ public class NmapService {
     return errorOutput.toString();
   }
 
-
-  // Method to parse the Nmap XML output and extract relevant information
   private Set<PortDTO> parseNmapXML(String xmlContent) throws ParserConfigurationException, IOException, SAXException {
 
-    // Parse the XML
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     InputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes());

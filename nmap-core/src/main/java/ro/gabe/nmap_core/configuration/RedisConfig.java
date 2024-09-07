@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 @Configuration
 public class RedisConfig {
+
   @Value("${SPRING_REDIS_HOST}")
   private String redisHost;
   @Value("${SPRING_REDIS_PORT}")

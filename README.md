@@ -59,6 +59,7 @@ Grafana is linked to Prometheus to visualize and monitor the metrics collected. 
 <img width="1469" alt="image" src="https://github.com/user-attachments/assets/19c11e5c-3c84-4aac-b84e-b9ff181b8a92">
 
 # Current Architecture
+![NMAP Tool - Current Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-current-architecture.png?raw=true)
 # Proposed Architecture
 ## Next Steps
 # How to run for development (MacOS)

@@ -1,5 +1,6 @@
 package ro.gabe.nmap_core.dto;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,4 +12,5 @@ public class ScanDTO {
   private String id;
   private String ip;
   private Set<PortDTO> ports;
+  private LocalDateTime createdAt;
 }

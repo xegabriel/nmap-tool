@@ -1,9 +1,11 @@
 package ro.gabe.nmap_core.model;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -19,4 +21,7 @@ public class Scan {
   private String ip;
 
   private Set<Port> ports;
+
+  @CreatedDate
+  private LocalDateTime createdAt;
 }

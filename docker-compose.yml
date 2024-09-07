@@ -26,6 +26,8 @@ services:
     container_name: nmap-mongo-container
     ports:
       - "27017:27017"
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
   nmap-processor:
     container_name: nmap-processor

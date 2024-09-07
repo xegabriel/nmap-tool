@@ -95,7 +95,7 @@ public class NmapService {
 
   private String buildNmapCommand(String ipAddress, int startPort, int endPort) {
     // Adjust nmap command to scan only the port range [startPort, endPort]
-    return "nmap -p" + startPort + "-" + endPort + " -T4 -oX - " + ipAddress;
+    return "nmap -p" + startPort + "-" + endPort + " -oX - " + ipAddress;
   }
 
   private Process startProcess(String command) throws IOException {

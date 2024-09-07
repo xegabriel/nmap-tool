@@ -1,13 +1,13 @@
 package ro.gabe.nmap_processor.service;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -15,47 +15,26 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import ro.gabe.nmap_processor.dto.PortDTO;
 
 @Slf4j
 @Service
 public class NmapService {
 
+  private static final String PORT_ID = "portid";
+  private static final String STATE = "state";
+  private static final String SERVICE = "service";
+  private static final String NAME = "name";
+  public static final String PORT = "port";
+
   public Set<PortDTO> performNmapScan(String ipAddress) {
-    StringBuilder xmlResult = new StringBuilder();
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     try {
-      // Command to execute with XML output (-oX)
-      String command = "nmap -T4 -oX - " + ipAddress;
-
-      // Create a process builder to execute the command
-      ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-      Process process = processBuilder.start();
-
-      // Read the output of the command (XML)
-      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String line;
-      while ((line = reader.readLine()) != null) {
-        xmlResult.append(line);
-      }
-
-      // Wait for the process to complete and check if there were errors
-      int exitCode = process.waitFor();
-      if (exitCode != 0) {
-        // Read the error stream if the command fails
-        BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-        StringBuilder errorOutput = new StringBuilder();
-        while ((line = errorReader.readLine()) != null) {
-          errorOutput.append(line).append("\n");
-        }
-        throw new RuntimeException("Error executing nmap command: " + errorOutput.toString());
-      }
-
-      // Parse the XML result to extract port, state, and service information
-      String xmlContent = xmlResult.toString();
-      return parseNmapXML(xmlContent);
-
+      validateIp(ipAddress);
+      String xmlResult = executeNmapCommand(ipAddress);
+      return parseNmapXML(xmlResult);
     } catch (Exception e) {
       throw new RuntimeException("Exception occurred during nmap scan: " + e.getMessage(), e);
     } finally {
@@ -64,9 +43,65 @@ public class NmapService {
     }
   }
 
+  private void validateIp(String ipAddress) {
+    // Re-validate the ip to prevent RCE
+    try {
+      // DNS resolution
+      InetAddress.getByName(ipAddress);
+    } catch (UnknownHostException e) {
+      throw new RuntimeException("Invalid ipAddress " + ipAddress);
+    }
+  }
+
+  private String executeNmapCommand(String ipAddress) throws IOException, InterruptedException {
+    StringBuilder xmlResult = new StringBuilder();
+    String command = buildNmapCommand(ipAddress);
+    Process process = startProcess(command);
+    readProcessOutput(process, xmlResult);
+    checkForErrors(process);
+    return xmlResult.toString();
+  }
+
+  private String buildNmapCommand(String ipAddress) {
+    return "nmap -T4 -oX - " + ipAddress;
+  }
+
+  private Process startProcess(String command) throws IOException {
+    ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+    return processBuilder.start();
+  }
+
+  private void readProcessOutput(Process process, StringBuilder xmlResult) throws IOException {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        xmlResult.append(line);
+      }
+    }
+  }
+
+  private void checkForErrors(Process process) throws IOException, InterruptedException {
+    int exitCode = process.waitFor();
+    if (exitCode != 0) {
+      String errorOutput = readErrorStream(process);
+      throw new RuntimeException("Error executing nmap command: " + errorOutput);
+    }
+  }
+
+  private String readErrorStream(Process process) throws IOException {
+    StringBuilder errorOutput = new StringBuilder();
+    try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+      String line;
+      while ((line = errorReader.readLine()) != null) {
+        errorOutput.append(line).append("\n");
+      }
+    }
+    return errorOutput.toString();
+  }
+
+
   // Method to parse the Nmap XML output and extract relevant information
-  private Set<PortDTO> parseNmapXML(String xmlContent) throws Exception {
-    Set<PortDTO> ports = new HashSet<>();
+  private Set<PortDTO> parseNmapXML(String xmlContent) throws ParserConfigurationException, IOException, SAXException {
 
     // Parse the XML
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -76,30 +111,30 @@ public class NmapService {
     doc.getDocumentElement().normalize();
 
     // Get the port elements
-    NodeList portNodes = doc.getElementsByTagName("port");
+    NodeList portNodes = doc.getElementsByTagName(PORT);
 
+    Set<PortDTO> ports = new HashSet<>();
     for (int i = 0; i < portNodes.getLength(); i++) {
       Node portNode = portNodes.item(i);
 
       if (portNode.getNodeType() == Node.ELEMENT_NODE) {
-        Element portElement = (Element) portNode;
-
-        // Extract port number, state, and service
-        String portId = portElement.getAttribute("portid");
-        String state = portElement.getElementsByTagName("state").item(0).getAttributes().getNamedItem("state")
-            .getNodeValue();
-        String service = portElement.getElementsByTagName("service").item(0).getAttributes().getNamedItem("name")
-            .getNodeValue();
-
-        // Format and append the result
-        ports.add(PortDTO.builder()
-            .port(Long.valueOf(portId))
-            .state(state)
-            .service(service)
-            .build());
+        ports.add(extractPort((Element) portNode));
       }
     }
 
     return ports;
+  }
+
+  private PortDTO extractPort(Element portElement) {
+    String portId = portElement.getAttribute(PORT_ID);
+    String state = portElement.getElementsByTagName(STATE).item(0).getAttributes().getNamedItem(STATE)
+        .getNodeValue();
+    String service = portElement.getElementsByTagName(SERVICE).item(0).getAttributes().getNamedItem(NAME)
+        .getNodeValue();
+    return PortDTO.builder()
+        .port(Long.valueOf(portId))
+        .state(state)
+        .service(service)
+        .build();
   }
 }

@@ -1,5 +1,6 @@
 package ro.gabe.nmap_core.service;
 
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,6 +26,7 @@ public class PublishedTargetsCache {
     String cacheKey = getKey(target);
     log.info("Storing result in cache {}", target);
     redisTemplate.opsForValue().set(cacheKey, true);
+    redisTemplate.expire(cacheKey, 60, TimeUnit.SECONDS);
   }
 
   private String getKey(String target) {

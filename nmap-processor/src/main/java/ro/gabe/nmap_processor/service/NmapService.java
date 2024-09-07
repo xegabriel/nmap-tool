@@ -35,7 +35,7 @@ public class NmapService {
   private static final String NAME = "name";
   // https://nmap.org/book/port-scanning.html
   private static final int TOTAL_PORTS = 65535;
-  private static final int THREAD_COUNT = 50;
+  private static final int THREAD_COUNT = 20;
 
   public Set<PortDTO> performNmapScan(String ipAddress) {
     StopWatch stopWatch = new StopWatch();

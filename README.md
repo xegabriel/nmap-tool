@@ -41,7 +41,23 @@ curl --request GET \
 curl --request GET \
   --url http://localhost:8080/api/scans/changes/github.com
 ```
-# Monitoring & Observability
+# Observability & Monitoring
+### Logs
+``` shell
+# Identify the containers
+docker ps
+# Check the container logs
+docker logs -f nmap-core
+docker logs -f nmap-processor
+```
+### Prometheus
+The nmap-core service exposes a [metrics endpoint](http://localhost:8080/actuator/prometheus) which is scraped by prometheus using this [config](https://github.com/xegabriel/nmap-tool/blob/main/observability/prometheus/prometheus.yml).
+The Prometheus UI can be accessed [here](http://localhost:9090/).
+### Grafana
+Grafana is linked to Prometheus to visualize and monitor the metrics collected. Prometheus serves as the data source for Grafana as [configured here](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/datasources/datasources.yml). The Grafana UI is accessible [here](http://localhost:3000/login) (use the default credentials when first running the application `admin:admin`). A [dashboard](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/dashboards/11378.json) is provided out-of-the-box.
+<img width="1488" alt="image" src="https://github.com/user-attachments/assets/2449ba8b-ebe6-413c-8545-ac0362785572">
+<img width="1469" alt="image" src="https://github.com/user-attachments/assets/19c11e5c-3c84-4aac-b84e-b9ff181b8a92">
+
 # Current Architecture
 # Proposed Architecture
 ## Next Steps
@@ -75,5 +91,3 @@ brew install openjdk@11
 # Install maven
 brew install maven
 ```
-# Swagger UI
-http://localhost:8080/swagger-ui/index.html#/

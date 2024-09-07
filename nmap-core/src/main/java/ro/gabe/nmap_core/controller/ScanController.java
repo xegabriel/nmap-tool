@@ -1,6 +1,7 @@
 package ro.gabe.nmap_core.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
@@ -53,9 +54,9 @@ public class ScanController {
   }
 
   @GetMapping("/changes/{ip}")
-  public ResponseEntity<Set<ScanDTO>> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
-    Set<ScanDTO> scanResults = scanService.getScanChangesResults(ip);
-    if (scanResults.isEmpty()) {
+  public ResponseEntity<ScanDTO> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
+    ScanDTO scanResults = scanService.getScanChangesResults(ip);
+    if (scanResults == null) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     } else {
       return new ResponseEntity<>(scanResults, HttpStatus.OK);

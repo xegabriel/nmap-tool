@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ro.gabe.nmap_core.dto.ScanDTO;
 import ro.gabe.nmap_core.model.Scan;
@@ -18,12 +20,10 @@ public class ScanService {
   private final ScanRepository scanRepository;
   private final ModelMapper mapper;
 
-  public Set<ScanDTO> getScanResults(String ip) {
-    List<Scan> scans = scanRepository.findByIp(ip);
+  public Page<ScanDTO> getScanResults(String ip, Pageable pageable) {
+    Page<Scan> scans = scanRepository.findByIp(ip, pageable);
 
-    return scans.stream()
-        .map(scan -> mapper.map(scan, ScanDTO.class))
-        .collect(Collectors.toSet());
+    return scans.map(scan -> mapper.map(scan, ScanDTO.class));
   }
 
   public Set<ScanDTO> getScanChangesResults(String ip) {

@@ -6,6 +6,9 @@ import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -34,9 +37,14 @@ public class ScanController {
   }
 
   @GetMapping("/{ip}")
-  public ResponseEntity<Set<ScanDTO>> getScanResults(@PathVariable @NotEmpty @ValidIP String ip) {
-    //TODO: Implement pagination
-    Set<ScanDTO> scanResults = scanService.getScanResults(ip);
+  public ResponseEntity<Page<ScanDTO>> getScanResults(
+      @PathVariable @NotEmpty @ValidIP String ip,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+
+    Pageable pageable = PageRequest.of(page, size);
+    Page<ScanDTO> scanResults = scanService.getScanResults(ip, pageable);
+
     if (scanResults.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     } else {

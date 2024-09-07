@@ -16,7 +16,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
@@ -24,6 +24,37 @@ services:
   mongo:
     image: mongo:latest
     container_name: nmap-mongo-container
-    hostname: ${HOSTNAME}
     ports:
       - "27017:27017"
+
+  nmap-processor:
+    container_name: nmap-processor
+    image: nmap-processor:latest
+    build:
+      context: ./nmap-processor
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_HOST=mongo
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+
+  nmap-core:
+    container_name: nmap-core
+    image: nmap-core:latest
+    build:
+      context: ./nmap-core
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_HOST=mongo
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - mongo
+      - kafka

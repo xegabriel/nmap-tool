@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import ro.gabe.nmap_processor.dto.ScanDTO;
 
 @Service
 @Slf4j
@@ -22,7 +23,8 @@ public class KafkaConsumerService {
   public void consumeTargetToBeScanned(String target) {
     log.info("Consumed message: {}", target);
     executor.submit(() -> {
-      scanService.performScan(target);
+      ScanDTO scanDTO = scanService.performScan(target);
+      log.info("The following ports were found for {}: {}", target, scanDTO);
     });
   }
 

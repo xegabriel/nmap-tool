@@ -36,6 +36,7 @@ public class NmapService {
       String xmlResult = executeNmapCommand(ipAddress);
       return parseNmapXML(xmlResult);
     } catch (Exception e) {
+      log.error("Exception occurred during nmap scan: {}", e.getLocalizedMessage());
       throw new RuntimeException("Exception occurred during nmap scan: " + e.getMessage(), e);
     } finally {
       stopWatch.stop();

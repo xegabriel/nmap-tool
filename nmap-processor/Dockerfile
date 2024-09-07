@@ -6,6 +6,7 @@ COPY src /workspace/src
 RUN mvn -f /workspace/pom.xml clean install
 
 FROM openjdk:11-jdk-slim
+RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /workspace/target/nmap-processor-0.0.1-SNAPSHOT.jar /data/nmap-processor-0.0.1-SNAPSHOT.jar
 EXPOSE 8081

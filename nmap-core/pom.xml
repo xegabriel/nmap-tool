@@ -84,7 +84,11 @@
       <artifactId>springdoc-openapi-ui</artifactId>
       <version>1.8.0</version>
     </dependency>
-
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -29,6 +29,12 @@ services:
     volumes:
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+
   nmap-processor:
     container_name: nmap-processor
     image: nmap-processor:latest
@@ -41,9 +47,12 @@ services:
       - SPRING_DATA_MONGODB_HOST=mongo
       - SPRING_DATA_MONGODB_PORT=27017
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
     depends_on:
       - mongo
       - kafka
+      - redis
 
   nmap-core:
     container_name: nmap-core
@@ -57,6 +66,9 @@ services:
       - SPRING_DATA_MONGODB_HOST=mongo
       - SPRING_DATA_MONGODB_PORT=27017
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
     depends_on:
       - mongo
       - kafka
+      - redis

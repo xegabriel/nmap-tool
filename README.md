@@ -60,6 +60,22 @@ Grafana is linked to Prometheus to visualize and monitor the metrics collected. 
 
 # Current Architecture
 ![NMAP Tool - Current Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-current-architecture.png?raw=true)
+## Multihreaded NMAP Scanning Structure Example
+``` shell
+# nmap-processor
+KafkaConsumerService
+   ├── Target: github.com (Thread 1)
+   │   ├── Interval 1 (Thread 1.1) - nmap scan nmap -p1-6553 -oX - github.com
+   │   ├── Interval 2 (Thread 1.2) - nmap scan nmap -p6554-13106 -oX - github.com
+   │   ├── Interval 3 (Thread 1.3) - nmap scan nmap -p13107-19659 -oX - github.com
+   │   └── ... (up to port 65535)
+   │
+   └── Target: example.com (Thread 2)
+       ├── Interval 1 (Thread 2.1) - nmap scan nmap -p1-6553 -oX - example.com
+       ├── Interval 2 (Thread 2.2) - nmap scan nmap -p6554-13106 -oX - example.com
+       ├── Interval 3 (Thread 2.3) - nmap scan nmap -p13107-19659 -oX - example.com
+       └── ... (up to port 65535)
+```
 # Proposed Architecture
 ## Next Steps
 # How to run for development (MacOS)
@@ -70,7 +86,7 @@ cd ../nmap-tool
 docker ps
 # Stop the container you are interested in debugging
 docker container stop nmap-core
-# Create a Srping Boot Run Configuration (https://www.jetbrains.com/guide/java/tutorials/hello-world/creating-a-run-configuration/)
+# Create a Spring Boot Run Configuration (https://www.jetbrains.com/guide/java/tutorials/hello-world/creating-a-run-configuration/)
 # Set the bellow env vars and run the project
 ```
 ### Environment variables

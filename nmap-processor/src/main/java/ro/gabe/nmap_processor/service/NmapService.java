@@ -8,7 +8,9 @@ import java.util.concurrent.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 import org.w3c.dom.Document;
@@ -29,14 +31,16 @@ public class NmapService {
   private static final String SERVICE = "service";
   private static final String NAME = "name";
   private static final String MISSING = "missing";
-  // https://nmap.org/book/port-scanning.html
-  private static final int TOTAL_PORTS = 65535;
-  private static final int THREAD_COUNT = 20;
+
+  @Value("${nmap.processor.total-ports}")
+  private int totalPorts;
+  @Value("${nmap.processor.thread-count}")
+  private int threadCount;
 
   public Set<PortDTO> performNmapScan(String ipAddress) {
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-    ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
     try {
       validateIp(ipAddress);
@@ -56,10 +60,10 @@ public class NmapService {
   }
 
   private List<Future<Set<PortDTO>>> submitPortScanTasks(String ipAddress, ExecutorService executor) {
-    int portInterval = TOTAL_PORTS / THREAD_COUNT;
+    int portInterval = totalPorts / threadCount;
     List<Future<Set<PortDTO>>> futures = new ArrayList<>();
 
-    for (int i = 0; i < THREAD_COUNT; i++) {
+    for (int i = 0; i < threadCount; i++) {
       int startPort = calculateStartPort(i, portInterval);
       int endPort = calculateEndPort(i, portInterval);
 
@@ -75,7 +79,7 @@ public class NmapService {
   }
 
   private int calculateEndPort(int i, int portInterval) {
-    return (i == THREAD_COUNT - 1) ? TOTAL_PORTS : (i + 1) * portInterval;
+    return (i == threadCount - 1) ? totalPorts : (i + 1) * portInterval;
   }
 
   private Set<PortDTO> executeNmapRangeScan(String ipAddress, int startPort, int endPort)

@@ -31,8 +31,9 @@ public class ScanService {
     Page<Scan> scans = scanRepository.findByIp(ip, pageable);
 
     if (scans.getTotalElements() == 0) {
-      log.warn("Not scans available for IP: {}.", ip);
-      throw new NotFoundException();
+      log.warn("No scans available for IP: {}.", ip);
+      throw new NotFoundException(
+          "No scans available for IP/Hostname " + ip + ". Please try again later if you've recently initiated a scan.");
     }
 
     Page<ScanDTO> scansPage = scans.map(scan -> mapper.map(scan, ScanDTO.class));
@@ -50,7 +51,8 @@ public class ScanService {
 
     if (scans.getTotalElements() < 2) {
       log.warn("Not enough scan history available for IP: {}. Total scans found: {}", ip, scans.getTotalElements());
-      throw new NotFoundException();
+      throw new NotFoundException("Not enough scan history available for IP/Hostname " + ip
+          + ". Please try again later if you've recently initiated a scan.");
     }
 
     Scan mostRecentScan = scans.getContent().get(0);

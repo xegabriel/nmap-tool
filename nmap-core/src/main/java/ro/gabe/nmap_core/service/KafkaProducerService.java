@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import ro.gabe.nmap_core.dto.ScansDTO;
 import ro.gabe.nmap_core.exceptions.KafkaDispatchingException;
+import ro.gabe.nmap_core.exceptions.TooManyRequestsException;
 
 @Slf4j
 @Service
@@ -29,6 +30,11 @@ public class KafkaProducerService {
       if (publishedTarget != null) {
         publishedTargets.add(publishedTarget);
       }
+    }
+    if (publishedTargets.size() == 0) {
+      throw new TooManyRequestsException(
+          "Scan request too soon. Please wait at least " + PublishedTargetsCache.TARGET_TTL_SECONDS
+              + " seconds before scanning the same IP again.");
     }
     return ScansDTO.builder().targets(publishedTargets).build();
   }

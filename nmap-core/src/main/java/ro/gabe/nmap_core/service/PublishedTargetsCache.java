@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class PublishedTargetsCache {
 
   private static final String CACHE_PUBLISHED_TARGETS_PREFIX = "publishedTargetsCache::";
-  private static final int TARGET_TTL_SECONDS = 60;
+  public static final int TARGET_TTL_SECONDS = 60;
   private final RedisTemplate<String, Object> redisTemplate;
 
   public boolean isCached(String target) {

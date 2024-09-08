@@ -27,7 +27,12 @@ public class ScanController {
 
   @PostMapping("/init")
   public ResponseEntity<ScansDTO> submitTargetsForScan(@Valid @RequestBody ScansDTO scansDTO) {
-    return new ResponseEntity<>(kafkaProducerService.publishTargetsForScan(scansDTO), HttpStatus.CREATED);
+    ScansDTO publishedScanDto = kafkaProducerService.publishTargetsForScan(scansDTO);
+    if (publishedScanDto.getTargets().containsAll(scansDTO.getTargets())) {
+      return new ResponseEntity<>(publishedScanDto, HttpStatus.CREATED);
+    } else {
+      return new ResponseEntity<>(publishedScanDto, HttpStatus.MULTI_STATUS);
+    }
   }
 
   @GetMapping("/{ip}")
@@ -45,6 +50,6 @@ public class ScanController {
   @GetMapping("/changes/{ip}")
   public ResponseEntity<ScanDTO> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
     ScanDTO scanResults = scanService.getScanChangesResults(ip);
-      return new ResponseEntity<>(scanResults, HttpStatus.OK);
+    return new ResponseEntity<>(scanResults, HttpStatus.OK);
   }
 }

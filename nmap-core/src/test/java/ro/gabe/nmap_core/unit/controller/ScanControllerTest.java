@@ -6,10 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,6 +18,7 @@ import java.util.Collections;
 import ro.gabe.nmap_core.controller.ScanController;
 import ro.gabe.nmap_core.dto.ScanDTO;
 import ro.gabe.nmap_core.dto.ScansDTO;
+import ro.gabe.nmap_core.exceptions.NotFoundException;
 import ro.gabe.nmap_core.service.KafkaProducerService;
 import ro.gabe.nmap_core.service.ScanService;
 
@@ -94,10 +93,8 @@ public class ScanControllerTest {
   void testGetScanResults_NotFound() throws Exception {
     // Given
     String ip = "192.168.1.1";
-    Pageable pageable = PageRequest.of(0, 10);
-    Page<ScanDTO> scanPage = Page.empty(pageable);
 
-    when(scanService.getScanResults(eq(ip), any(Pageable.class))).thenReturn(scanPage);
+    when(scanService.getScanResults(eq(ip), any(Pageable.class))).thenThrow(new NotFoundException());
 
     // When
     ResultActions result = mockMvc.perform(get("/api/scans/{ip}", ip)
@@ -132,9 +129,10 @@ public class ScanControllerTest {
     when(scanService.getScanChangesResults(eq(ip))).thenReturn(null);
 
     // When
-    ResultActions result = mockMvc.perform(get("/api/scans/changes/{ip}", ip));
+    when(scanService.getScanChangesResults(ip)).thenThrow(new NotFoundException());
 
     // Then
-    result.andExpect(status().isNotFound());
+    mockMvc.perform(get("/changes/{ip}", ip))
+        .andExpect(status().isNotFound());
   }
 }

@@ -1,4 +1,5 @@
 FROM maven:3.8.6-openjdk-11 AS build
+RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /workspace
 WORKDIR /workspace
 COPY pom.xml /workspace/pom.xml

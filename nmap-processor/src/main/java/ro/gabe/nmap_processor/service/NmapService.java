@@ -8,7 +8,6 @@ import java.util.concurrent.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,7 @@ public class NmapService {
   private static final String SERVICE = "service";
   private static final String NAME = "name";
   private static final String MISSING = "missing";
+  private static final String STATE_OPEN = "open";
 
   @Value("${nmap.processor.total-ports}")
   private int totalPorts;
@@ -145,7 +145,10 @@ public class NmapService {
         Node portNode = portNodes.item(i);
 
         if (portNode.getNodeType() == Node.ELEMENT_NODE) {
-          ports.add(extractPort((Element) portNode));
+          PortDTO extractedPort = extractPort((Element) portNode);
+          if (extractedPort != null) {
+            ports.add(extractedPort);
+          }
         }
       }
     }
@@ -160,6 +163,9 @@ public class NmapService {
 
     String service = portElement.getElementsByTagName(SERVICE).item(0) != null ?
         portElement.getElementsByTagName(SERVICE).item(0).getAttributes().getNamedItem(NAME).getNodeValue() : MISSING;
+    if (!STATE_OPEN.equalsIgnoreCase(state)) {
+      return null;
+    }
     return PortDTO.builder()
         .port(Long.valueOf(portId))
         .state(state)

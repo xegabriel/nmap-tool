@@ -130,6 +130,7 @@ Automate testing and deployment by setting up a CI/CD pipeline (e.g., Jenkins, G
 Refactor common Nmap functions into a reusable library for modularization and scalability. Publish it for internal use.
 - **Connect to OpenAI for Anomaly Detection:**
 Use OpenAI to detect anomalies, like multiple open Telekom ports on different hosts. Integrate OpenAI's API to analyze scan results and flag irregularities.
+- **Integration Tests:** Implement integration tests to ensure that different parts of your application work together as expected. Focus on validating the communication between services (e.g., REST API, database, and other components).
 # How to run for development (MacOS)
 ``` shell
 brew install nmap

@@ -18,7 +18,7 @@ import ro.gabe.nmap_core.exceptions.KafkaDispatchingException;
 @RequiredArgsConstructor
 public class KafkaProducerService {
 
-  private static final String TOPIC = "scan-results";
+  public static final String TOPIC = "scan-results";
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final PublishedTargetsCache publishedTargetsCache;
 

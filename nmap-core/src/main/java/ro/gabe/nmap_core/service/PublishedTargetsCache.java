@@ -30,7 +30,7 @@ public class PublishedTargetsCache {
     redisTemplate.expire(cacheKey, TARGET_TTL_SECONDS, TimeUnit.SECONDS);
   }
 
-  private String getKey(String target) {
+  public String getKey(String target) {
     return CACHE_PUBLISHED_TARGETS_PREFIX + target;
   }
 }

@@ -57,7 +57,7 @@ public class ScanService {
     return scanDiffDTO;
   }
 
-  private ScanDTO calculateDiff(Scan mostRecentScan, Scan previousScan) {
+  public ScanDTO calculateDiff(Scan mostRecentScan, Scan previousScan) {
     Set<Port> newPorts = new HashSet<>(mostRecentScan.getPorts());
     newPorts.removeAll(previousScan.getPorts());
 

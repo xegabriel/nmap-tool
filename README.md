@@ -32,14 +32,14 @@ curl --request POST \
   --url http://localhost:8080/api/scans/init \
   --header 'Content-Type: application/json' \
   --data '{
-	"targets": ["github.com"]
+	"targets": ["example.com"]
 }'
 
 curl --request GET \
-  --url http://localhost:8080/api/scans/github.com
+  --url http://localhost:8080/api/scans/example.com
 
 curl --request GET \
-  --url http://localhost:8080/api/scans/changes/github.com
+  --url http://localhost:8080/api/scans/changes/example.com
 ```
 # Current Architecture
 ![NMAP Tool - Current Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-current-architecture.png?raw=true)

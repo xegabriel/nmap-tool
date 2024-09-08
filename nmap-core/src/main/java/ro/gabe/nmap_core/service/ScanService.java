@@ -12,7 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 import ro.gabe.nmap_core.dto.ScanDTO;
-import ro.gabe.nmap_core.exceptions.HistoryNotAvailableException;
+import ro.gabe.nmap_core.exceptions.NotFoundException;
 import ro.gabe.nmap_core.model.Port;
 import ro.gabe.nmap_core.model.Scan;
 import ro.gabe.nmap_core.repository.ScanRepository;
@@ -30,6 +30,11 @@ public class ScanService {
     stopWatch.start();
     Page<Scan> scans = scanRepository.findByIp(ip, pageable);
 
+    if (scans.getTotalElements() == 0) {
+      log.warn("Not scans available for IP: {}.", ip);
+      throw new NotFoundException();
+    }
+
     Page<ScanDTO> scansPage = scans.map(scan -> mapper.map(scan, ScanDTO.class));
     stopWatch.stop();
     log.info("Query for IP: {} completed in {} ms. Total scans found: {}", ip, stopWatch.getTotalTimeMillis(),
@@ -45,7 +50,7 @@ public class ScanService {
 
     if (scans.getTotalElements() < 2) {
       log.warn("Not enough scan history available for IP: {}. Total scans found: {}", ip, scans.getTotalElements());
-      throw new HistoryNotAvailableException();
+      throw new NotFoundException();
     }
 
     Scan mostRecentScan = scans.getContent().get(0);

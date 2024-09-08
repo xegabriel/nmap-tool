@@ -39,20 +39,12 @@ public class ScanController {
     Pageable pageable = PageRequest.of(page, size);
     Page<ScanDTO> scanResults = scanService.getScanResults(ip, pageable);
 
-    if (scanResults.isEmpty()) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } else {
-      return new ResponseEntity<>(scanResults, HttpStatus.OK);
-    }
+    return new ResponseEntity<>(scanResults, HttpStatus.OK);
   }
 
   @GetMapping("/changes/{ip}")
   public ResponseEntity<ScanDTO> getScanChangesResults(@PathVariable @NotEmpty @ValidIP String ip) {
     ScanDTO scanResults = scanService.getScanChangesResults(ip);
-    if (scanResults == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } else {
       return new ResponseEntity<>(scanResults, HttpStatus.OK);
-    }
   }
 }

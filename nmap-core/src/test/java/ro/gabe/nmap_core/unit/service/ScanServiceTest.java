@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import ro.gabe.nmap_core.dto.PortDTO;
 import ro.gabe.nmap_core.dto.ScanDTO;
-import ro.gabe.nmap_core.exceptions.HistoryNotAvailableException;
+import ro.gabe.nmap_core.exceptions.NotFoundException;
 import ro.gabe.nmap_core.model.Port;
 import ro.gabe.nmap_core.model.Scan;
 import ro.gabe.nmap_core.repository.ScanRepository;
@@ -76,7 +76,7 @@ public class ScanServiceTest {
     when(scanRepository.findByIp(ip, pageable)).thenReturn(scanPage);
 
     // When & Then
-    assertThrows(HistoryNotAvailableException.class, () -> scanService.getScanChangesResults(ip));
+    assertThrows(NotFoundException.class, () -> scanService.getScanChangesResults(ip));
     verify(scanRepository).findByIp(ip, pageable);
   }
 

@@ -6,8 +6,5 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @NoArgsConstructor
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class HistoryNotAvailableException extends RuntimeException {
-  public HistoryNotAvailableException(String message) {
-    super(message);
-  }
+public class NotFoundException extends RuntimeException {
 }

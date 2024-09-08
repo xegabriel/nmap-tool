@@ -61,7 +61,25 @@ KafkaConsumerService
 ```
 ## Mongo Structure
 ``` shell
+Database: nmap_scans
+Collection: nmap-scans
 
+Document Example:
++---------------------------------------------------+
+| _id: 66dd9aa0646088686470b759                     |
+| ip: "example.com"                                 |
+| ports:                                            |
+|  - port: 443                                      |
+|    state: "open"                                  |
+|    service: "https"                               |
+|  - port: 80                                       |
+|    state: "open"                                  |
+|    service: "http"                                |
+| createdAt: "2024-09-08T12:37:52.851Z"             |
++---------------------------------------------------+
+
+Index: ip_createdAt_index
+- Fields: ip, createdAt
 ```
 Through [this script](https://github.com/xegabriel/nmap-tool/blob/main/mongo-init.js), a MongoDB index is automatically created to optimize query performance. Other scripts, such as generating dummy data, can also be added here for additional functionality.
 # Proposed Architecture

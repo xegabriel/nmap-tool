@@ -18,10 +18,10 @@ public class ScanService {
   private final ModelMapper mapper;
 
   public ScanDTO performScan(String target) {
-    Set<PortDTO> ports = nmapService.performNmapScan(target);
+    Set<PortDTO> portsFound = nmapService.performNmapScan(target);
     ScanDTO scanResult = ScanDTO.builder()
         .ip(target)
-        .ports(ports)
+        .ports(portsFound)
         .build();
     Scan scanModel = mapper.map(scanResult, Scan.class);
     Scan savedScanResult = scanRepository.save(scanModel);

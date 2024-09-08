@@ -15,15 +15,21 @@ import ro.gabe.nmap_processor.dto.ScanDTO;
 @RequiredArgsConstructor
 public class KafkaConsumerService {
 
+  private static final String SCAN_RESULTS_TOPIC = "scan-results";
   private final ScanService scanService;
   private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-  @KafkaListener(topics = "scan-results", groupId = "scan-consumers")
+  @KafkaListener(topics = SCAN_RESULTS_TOPIC, groupId = "scan-consumers")
   public void consumeTargetToBeScanned(String target) {
-    log.info("Consumed message: {}", target);
+    log.info("Received target from Kafka topic '{}' for scanning: {}", SCAN_RESULTS_TOPIC, target);
     executor.submit(() -> {
-      ScanDTO scanDTO = scanService.performScan(target);
-      log.info("The following ports were found for {}: {}", target, scanDTO);
+      try {
+        ScanDTO scanDTO = scanService.performScan(target);
+        log.info("Scan completed successfully for target: {}. The following ports were found: {}.", target,
+            scanDTO.getPorts());
+      } catch (Exception e) {
+        log.error("Error occurred while scanning target: {}. Error: {}", target, e.getMessage(), e);
+      }
     });
   }
 

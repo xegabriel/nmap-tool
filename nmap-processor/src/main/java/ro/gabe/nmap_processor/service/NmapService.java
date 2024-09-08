@@ -1,16 +1,10 @@
 package ro.gabe.nmap_processor.service;
 
+import static ro.gabe.nmap_processor.utils.IpValidatorUtil.validateIp;
+
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,6 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import ro.gabe.nmap_processor.dto.PortDTO;
+import ro.gabe.nmap_processor.exceptions.NmapScanException;
 
 @Slf4j
 @Service
@@ -33,6 +28,7 @@ public class NmapService {
   private static final String STATE = "state";
   private static final String SERVICE = "service";
   private static final String NAME = "name";
+  private static final String MISSING = "missing";
   // https://nmap.org/book/port-scanning.html
   private static final int TOTAL_PORTS = 65535;
   private static final int THREAD_COUNT = 20;
@@ -44,41 +40,42 @@ public class NmapService {
 
     try {
       validateIp(ipAddress);
-      int portInterval = TOTAL_PORTS / THREAD_COUNT;
-
-      // Create and submit tasks for each port range
-      List<Future<Set<PortDTO>>> futures = new ArrayList<>();
-      for (int i = 0; i < THREAD_COUNT; i++) {
-        int startPort = i * portInterval + 1;
-        int endPort = (i == THREAD_COUNT - 1) ? TOTAL_PORTS : (i + 1) * portInterval;
-
-        log.info("Submitting range scan {}-{} for {}", startPort, endPort, ipAddress);
-        Callable<Set<PortDTO>> task = () -> executeNmapRangeScan(ipAddress, startPort, endPort);
-        futures.add(executor.submit(task));
-      }
-
-      Set<PortDTO> allResults = new HashSet<>();
-      for (Future<Set<PortDTO>> future : futures) {
-        allResults.addAll(future.get());
-      }
-      return allResults;
-
+      List<Future<Set<PortDTO>>> futures = submitPortScanTasks(ipAddress, executor);
+      return collectScanResults(futures, ipAddress);
     } catch (Exception e) {
-      log.error("Exception occurred during nmap scan: {}", e.getLocalizedMessage());
-      throw new RuntimeException("Exception occurred during nmap scan: " + e.getMessage(), e);
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      log.error("Exception occurred during nmap scan for {}: {}", ipAddress, e.getLocalizedMessage());
+      throw new NmapScanException("Exception occurred during nmap scan: " + e.getMessage(), e);
     } finally {
-      stopWatch.stop();
       executor.shutdown();
+      stopWatch.stop();
       log.info("NMAP scan performed for {} in {} seconds", ipAddress, stopWatch.getTotalTimeSeconds());
     }
   }
 
-  private void validateIp(String ipAddress) {
-    try {
-      InetAddress.getByName(ipAddress);  // DNS resolution
-    } catch (UnknownHostException e) {
-      throw new RuntimeException("Invalid ipAddress " + ipAddress);
+  private List<Future<Set<PortDTO>>> submitPortScanTasks(String ipAddress, ExecutorService executor) {
+    int portInterval = TOTAL_PORTS / THREAD_COUNT;
+    List<Future<Set<PortDTO>>> futures = new ArrayList<>();
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+      int startPort = calculateStartPort(i, portInterval);
+      int endPort = calculateEndPort(i, portInterval);
+
+      log.info("Submitting range scan {}-{} for {}", startPort, endPort, ipAddress);
+      Callable<Set<PortDTO>> task = () -> executeNmapRangeScan(ipAddress, startPort, endPort);
+      futures.add(executor.submit(task));
     }
+    return futures;
+  }
+
+  private int calculateStartPort(int i, int portInterval) {
+    return i * portInterval + 1;
+  }
+
+  private int calculateEndPort(int i, int portInterval) {
+    return (i == THREAD_COUNT - 1) ? TOTAL_PORTS : (i + 1) * portInterval;
   }
 
   private Set<PortDTO> executeNmapRangeScan(String ipAddress, int startPort, int endPort)
@@ -113,7 +110,7 @@ public class NmapService {
     int exitCode = process.waitFor();
     if (exitCode != 0) {
       String errorOutput = readErrorStream(process);
-      throw new RuntimeException("Error executing nmap command: " + errorOutput);
+      throw new NmapScanException("Error executing nmap command: " + errorOutput);
     }
   }
 
@@ -132,19 +129,20 @@ public class NmapService {
 
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
-    InputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes());
-    Document doc = builder.parse(inputStream);
-    doc.getDocumentElement().normalize();
-
-    // Get the port elements
-    NodeList portNodes = doc.getElementsByTagName(PORT);
-
     Set<PortDTO> ports = new HashSet<>();
-    for (int i = 0; i < portNodes.getLength(); i++) {
-      Node portNode = portNodes.item(i);
+    try (InputStream inputStream = new ByteArrayInputStream(xmlContent.getBytes())) {
+      Document doc = builder.parse(inputStream);
+      doc.getDocumentElement().normalize();
 
-      if (portNode.getNodeType() == Node.ELEMENT_NODE) {
-        ports.add(extractPort((Element) portNode));
+      // Get the port elements
+      NodeList portNodes = doc.getElementsByTagName(PORT);
+
+      for (int i = 0; i < portNodes.getLength(); i++) {
+        Node portNode = portNodes.item(i);
+
+        if (portNode.getNodeType() == Node.ELEMENT_NODE) {
+          ports.add(extractPort((Element) portNode));
+        }
       }
     }
 
@@ -153,14 +151,30 @@ public class NmapService {
 
   private PortDTO extractPort(Element portElement) {
     String portId = portElement.getAttribute(PORT_ID);
-    String state = portElement.getElementsByTagName(STATE).item(0).getAttributes().getNamedItem(STATE)
-        .getNodeValue();
-    String service = portElement.getElementsByTagName(SERVICE).item(0).getAttributes().getNamedItem(NAME)
-        .getNodeValue();
+    String state = portElement.getElementsByTagName(STATE).item(0) != null ?
+        portElement.getElementsByTagName(STATE).item(0).getAttributes().getNamedItem(STATE).getNodeValue() : MISSING;
+
+    String service = portElement.getElementsByTagName(SERVICE).item(0) != null ?
+        portElement.getElementsByTagName(SERVICE).item(0).getAttributes().getNamedItem(NAME).getNodeValue() : MISSING;
     return PortDTO.builder()
         .port(Long.valueOf(portId))
         .state(state)
         .service(service)
         .build();
+  }
+
+  private Set<PortDTO> collectScanResults(List<Future<Set<PortDTO>>> futures, String ipAddress)
+      throws InterruptedException {
+    Set<PortDTO> allResults = new HashSet<>();
+    for (Future<Set<PortDTO>> future : futures) {
+      try {
+        allResults.addAll(future.get());
+      } catch (ExecutionException e) {
+        log.error("Error occurred during scanning in one of the tasks for IP: {}. Error: {}", ipAddress,
+            e.getCause().getMessage());
+        throw new NmapScanException("Error during scanning", e);
+      }
+    }
+    return allResults;
   }
 }

@@ -59,6 +59,23 @@ KafkaConsumerService
        ├── Interval 3 (Thread 2.3) - nmap scan nmap -p13107-19659 -oX - example.com
        └── ... (up to port 65535)
 ```
+## Configuration
+The nmap-tool comes with several [configurable parameters](https://github.com/xegabriel/nmap-tool/blob/main/nmap-processor/src/main/resources/application.properties#L15) to allow flexibility in scanning and tuning performance. The parameters you can configure are:
+``` shell
+nmap.processor.total-ports: This defines the total number of ports to be scanned.
+Default: 65535
+# Note: Scanning a large number of ports may result in increased network load, so this should be adjusted according to your scanning requirements and network capacity.
+
+nmap.processor.thread-count: This defines the number of threads that will be used for scanning.
+Default: 20
+# Note: Increasing the thread count will allow for faster scans, but may also lead to network congestion, packet loss, or rate limiting if not configured carefully.
+```
+### Important Considerations:
+- **Network Congestion and Packet Loss:** Tweaking these parameters should be done with caution to avoid overwhelming the network, which can lead to packet loss or other network performance issues.
+- **Rate Limiting:** Be aware of the scanning rate. If the tool sends requests too quickly, it may trigger rate limiting or other protective mechanisms on the target network.
+- **Blacklisted IPs:** Ensure that the scans are being executed from an IP address that is not blacklisted. For example, avoid using well-known VPN IPs that might already be flagged by security systems.  
+
+Proper tuning and caution will ensure optimal performance and accurate results while minimizing network disruption.
 ## Mongo Structure
 ``` shell
 Database: nmap_scans

@@ -41,23 +41,6 @@ curl --request GET \
 curl --request GET \
   --url http://localhost:8080/api/scans/changes/github.com
 ```
-# Observability & Monitoring
-### Logs
-``` shell
-# Identify the containers
-docker ps
-# Check the container logs
-docker logs -f nmap-core
-docker logs -f nmap-processor
-```
-### Prometheus
-The nmap-core service exposes a [metrics endpoint](http://localhost:8080/actuator/prometheus) which is scraped by prometheus using this [config](https://github.com/xegabriel/nmap-tool/blob/main/observability/prometheus/prometheus.yml).
-The Prometheus UI can be accessed [here](http://localhost:9090/).
-### Grafana
-Grafana is linked to Prometheus to visualize and monitor the metrics collected. Prometheus serves as the data source for Grafana as [configured here](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/datasources/datasources.yml). The Grafana UI is accessible [here](http://localhost:3000/login) (use the default credentials when first running the application `admin:admin`). A [dashboard](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/dashboards/11378.json) is provided out-of-the-box.
-<img width="1488" alt="image" src="https://github.com/user-attachments/assets/2449ba8b-ebe6-413c-8545-ac0362785572">
-<img width="1469" alt="image" src="https://github.com/user-attachments/assets/19c11e5c-3c84-4aac-b84e-b9ff181b8a92">
-
 # Current Architecture
 ![NMAP Tool - Current Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-current-architecture.png?raw=true)
 ## Multihreaded NMAP Scanning Structure Example
@@ -76,9 +59,42 @@ KafkaConsumerService
        ├── Interval 3 (Thread 2.3) - nmap scan nmap -p13107-19659 -oX - example.com
        └── ... (up to port 65535)
 ```
+## Mongo Structure
+``` shell
+
+```
+Through [this script](https://github.com/xegabriel/nmap-tool/blob/main/mongo-init.js), a MongoDB index is automatically created to optimize query performance. Other scripts, such as generating dummy data, can also be added here for additional functionality.
 # Proposed Architecture
 ![NMAP Tool - Proposed Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-proposed-architecture.png?raw=true)
+
+# Observability & Monitoring
+### Logs
+``` shell
+# Identify the containers
+docker ps
+# Check the container logs
+docker logs -f nmap-core
+docker logs -f nmap-processor
+```
+### Prometheus
+The nmap-core service exposes a [metrics endpoint](http://localhost:8080/actuator/prometheus) which is scraped by prometheus using this [config](https://github.com/xegabriel/nmap-tool/blob/main/observability/prometheus/prometheus.yml).
+The Prometheus UI can be accessed [here](http://localhost:9090/).
+### Grafana
+Grafana is linked to Prometheus to visualize and monitor the metrics collected. Prometheus serves as the data source for Grafana as [configured here](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/datasources/datasources.yml). The Grafana UI is accessible [here](http://localhost:3000/login) (use the default credentials when first running the application `admin:admin`). A [dashboard](https://github.com/xegabriel/nmap-tool/blob/main/observability/grafana/dashboards/11378.json) is provided out-of-the-box.
+<img width="1488" alt="image" src="https://github.com/user-attachments/assets/2449ba8b-ebe6-413c-8545-ac0362785572">
+<img width="1469" alt="image" src="https://github.com/user-attachments/assets/19c11e5c-3c84-4aac-b84e-b9ff181b8a92">
+
 ## Next Steps
+- **Deploy on Kubernetes:**
+Deploy the application on Kubernetes for scalability and resilience. Define resources, health checks, and autoscaling in the Kubernetes configuration.
+- **Set TTL in Database:**
+Implement TTL to automatically delete older scan records. Use the `createdAt` field and configure the TTL index to avoid overaccumulation.
+- **Implement CI/CD:**
+Automate testing and deployment by setting up a CI/CD pipeline (e.g., Jenkins, GitHub Actions). Ensure automated testing and deploy on successful builds.
+- **Extract Common Logic:**
+Refactor common Nmap functions into a reusable library for modularization and scalability. Publish it for internal use.
+- **Connect to OpenAI for Anomaly Detection:**
+Use OpenAI to detect anomalies, like multiple open Telekom ports on different hosts. Integrate OpenAI's API to analyze scan results and flag irregularities.
 # How to run for development (MacOS)
 ``` shell
 brew install nmap

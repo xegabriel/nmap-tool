@@ -77,6 +77,7 @@ KafkaConsumerService
        └── ... (up to port 65535)
 ```
 # Proposed Architecture
+![NMAP Tool - Proposed Architecture](https://github.com/xegabriel/nmap-tool/blob/main/docs/nmap-tool-proposed-architecture.png?raw=true)
 ## Next Steps
 # How to run for development (MacOS)
 ``` shell

@@ -22,8 +22,8 @@ public class MethodArgumentNotValidExceptionHandler {
 
   private static final String VALIDATION_ERROR_MESSAGE = "Validation error!";
 
-  @ResponseStatus(BAD_REQUEST)
   @ResponseBody
+  @ResponseStatus(BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ValidationErrorsDTO methodArgumentNotValidException(MethodArgumentNotValidException ex) {
     BindingResult result = ex.getBindingResult();
@@ -35,8 +35,8 @@ public class MethodArgumentNotValidExceptionHandler {
     return error;
   }
 
-  @ResponseStatus(BAD_REQUEST)
   @ResponseBody
+  @ResponseStatus(BAD_REQUEST)
   @ExceptionHandler(ConstraintViolationException.class)
   public ValidationErrorsDTO handleConstraintViolationException(ConstraintViolationException ex) {
     ValidationErrorsDTO errors = new ValidationErrorsDTO(BAD_REQUEST.value(), VALIDATION_ERROR_MESSAGE);

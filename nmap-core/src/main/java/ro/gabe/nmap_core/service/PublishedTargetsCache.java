@@ -12,21 +12,22 @@ import org.springframework.stereotype.Service;
 public class PublishedTargetsCache {
 
   private static final String CACHE_PUBLISHED_TARGETS_PREFIX = "publishedTargetsCache::";
+  private static final int TARGET_TTL_SECONDS = 60;
   private final RedisTemplate<String, Object> redisTemplate;
 
   public boolean isCached(String target) {
     String cacheKey = getKey(target);
     Object cachedValue = redisTemplate.opsForValue().get(cacheKey);
-    log.info("Target {} cached: {}", target, cachedValue != null);
+    log.info("Target {} exists in Redis cache: {}", target, cachedValue != null);
     return cachedValue != null;
 
   }
 
   public void cache(String target) {
     String cacheKey = getKey(target);
-    log.info("Storing result in cache {}", target);
+    log.info("Storing target {} in Redis cache", target);
     redisTemplate.opsForValue().set(cacheKey, true);
-    redisTemplate.expire(cacheKey, 60, TimeUnit.SECONDS);
+    redisTemplate.expire(cacheKey, TARGET_TTL_SECONDS, TimeUnit.SECONDS);
   }
 
   private String getKey(String target) {

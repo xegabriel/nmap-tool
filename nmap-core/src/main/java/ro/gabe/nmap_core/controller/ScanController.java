@@ -1,7 +1,5 @@
 package ro.gabe.nmap_core.controller;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +26,8 @@ public class ScanController {
   private final ScanService scanService;
 
   @PostMapping("/init")
-  public ResponseEntity<Map<String, Object>> submitTargetsForScan(@Valid @RequestBody ScansDTO scansDTO) {
-    Map<String, Object> response = new HashMap<>();
-    kafkaProducerService.publishTargetsForScan(scansDTO);
-    response.put("status", "success");
-    return new ResponseEntity<>(response, HttpStatus.CREATED);
+  public ResponseEntity<ScansDTO> submitTargetsForScan(@Valid @RequestBody ScansDTO scansDTO) {
+    return new ResponseEntity<>(kafkaProducerService.publishTargetsForScan(scansDTO), HttpStatus.CREATED);
   }
 
   @GetMapping("/{ip}")

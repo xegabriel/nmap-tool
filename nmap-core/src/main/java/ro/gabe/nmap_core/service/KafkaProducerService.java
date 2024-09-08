@@ -3,6 +3,7 @@ package ro.gabe.nmap_core.service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -10,6 +11,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import ro.gabe.nmap_core.dto.ScansDTO;
+import ro.gabe.nmap_core.exceptions.KafkaDispatchingException;
 
 @Slf4j
 @Service
@@ -20,15 +22,15 @@ public class KafkaProducerService {
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final PublishedTargetsCache publishedTargetsCache;
 
-  public Set<String> publishTargetsForScan(ScansDTO scansDTO) {
-    Set<String> publishedClients = new HashSet<>();
+  public ScansDTO publishTargetsForScan(ScansDTO scansDTO) {
+    Set<String> publishedTargets = new HashSet<>();
     for (String target : scansDTO.getTargets()) {
       String publishedTarget = publishTargetForScan(target);
       if (publishedTarget != null) {
-        publishedClients.add(publishedTarget);
+        publishedTargets.add(publishedTarget);
       }
     }
-    return publishedClients;
+    return ScansDTO.builder().targets(publishedTargets).build();
   }
 
   public String publishTargetForScan(String target) {
@@ -41,8 +43,14 @@ public class KafkaProducerService {
       future.get();
       publishedTargetsCache.cache(target);
       return target;
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to send message to Kafka", e);
+    } catch (ExecutionException e) {
+      log.error("Kafka dispatching failed. Target: {}, Error: {}", target, e.getLocalizedMessage());
+      throw new KafkaDispatchingException("Failed to send " + target + " message to Kafka: " + e.getLocalizedMessage());
+    } catch (InterruptedException e) {
+      log.error("Thread interrupted while attempting to send message to Kafka. Target: {}, Error: {}", target,
+          e.getLocalizedMessage());
+      Thread.currentThread().interrupt();
+      throw new KafkaDispatchingException("Failed to send " + target + " message to Kafka: " + e.getLocalizedMessage());
     }
   }
 }

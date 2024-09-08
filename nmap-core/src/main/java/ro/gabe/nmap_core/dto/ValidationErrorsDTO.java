@@ -11,7 +11,7 @@ public class ValidationErrorsDTO {
 
   private final int status;
   private final String message;
-  private Set<String> validationErrors = new HashSet<>();
+  private final Set<String> validationErrors = new HashSet<>();
 
   public void addValidationError(String message) {
     validationErrors.add(message);

@@ -24,9 +24,9 @@ public class ScanService {
 
   private final ScanRepository scanRepository;
   private final ModelMapper mapper;
-  private final StopWatch stopWatch = new StopWatch();
 
   public Page<ScanDTO> getScanResults(String ip, Pageable pageable) {
+    StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     Page<Scan> scans = scanRepository.findByIp(ip, pageable);
 
@@ -38,6 +38,7 @@ public class ScanService {
   }
 
   public ScanDTO getScanChangesResults(String ip) {
+    StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     Pageable pageable = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "createdAt"));
     Page<Scan> scans = scanRepository.findByIp(ip, pageable);
